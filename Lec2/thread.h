@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/resource.h>
 
 #define NTHREAD 64
 enum { T_FREE = 0, T_LIVE, T_DEAD, };
@@ -29,6 +30,12 @@ void create(void *fn) {
     .status = T_LIVE,
     .entry = fn,
   };
+  // Set stack limit size
+  struct rlimit lim = (struct rlimit) {
+    .rlim_cur = 4096 * 1024,
+    .rlim_max = 4096 * 1024,
+  };
+  setrlimit(RLIMIT_STACK, &lim);
   pthread_create(&(tptr->thread), NULL, wrapper, tptr);
   ++tptr;
 }
